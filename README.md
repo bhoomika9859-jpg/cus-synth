@@ -23,4 +23,4 @@ credentialing approval for future validation.
 ## Status
 ## Status
 ✅ Week 1 — Project setup complete
-🔄 Week 2 — Data pipeline in progress
+✅ Week 2 — CUS metric implemented and tested
