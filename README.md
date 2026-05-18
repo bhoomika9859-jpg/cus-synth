@@ -9,11 +9,18 @@ grounded in ACR diagnostic error severity (CUS) better
 aligns with downstream diagnostic performance than
 distributional similarity metrics.
 
+## Dataset
+NIH ChestX-ray14 (Sample) — 5606 chest X-ray images
+with 14 disease labels. MIDI-B access pending PhysioNet
+credentialing approval for future validation.
+
 ## Project Structure
-- `data/` — datasets (MIDI-B CXR images)
+- `data/` — datasets (NIH ChestX-ray14 images)
 - `src/` — all source code
 - `notebooks/` — experiments and analysis
 - `results/` — outputs, plots, scores
 
 ## Status
-🚧 Week 1 — Setup in progress
+## Status
+✅ Week 1 — Project setup complete
+🔄 Week 2 — Data pipeline in progress

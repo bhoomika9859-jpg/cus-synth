@@ -1,0 +1,12 @@
+# Data folder - too large for GitHub
+data/sample/
+*.png
+*.jpg
+*.jpeg
+
+# Virtual environment
+venv/
+
+# Python cache
+__pycache__/
+*.pyc
