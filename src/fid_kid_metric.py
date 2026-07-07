@@ -1,14 +1,23 @@
-# FID and KID Metrics for comparison with CUS
+# FID and KID Metrics
+# CUS-Synth: Clinical Utility Score for Synthetic Medical Image Evaluation
 # Author: bhoomika9859-jpg
+# Version 2.0 — Updated with honest framing
 
 import numpy as np
 from scipy import linalg
 
-# ── Helper: Calculate Mean and Covariance ─────────────────────────
+# ── Important Note ────────────────────────────────────────────────
+# FID and KID are DISTRIBUTIONAL metrics — they give ONE global
+# score for an entire set of images, not per-image scores.
+# This is a fundamental limitation for medical image evaluation
+# where per-image clinical safety matters.
+# CUS addresses this by giving per-image clinical risk scores.
+
+# ── Helper: Calculate Stats ───────────────────────────────────────
 def calculate_stats(features):
     """
     Calculate mean and covariance of image features.
-    This is the foundation of both FID and KID!
+    Foundation of both FID and KID.
     """
     mu = np.mean(features, axis=0)
     sigma = np.cov(features, rowvar=False)
@@ -19,22 +28,21 @@ def calculate_stats(features):
 def compute_fid(real_features, synthetic_features):
     """
     Frechet Inception Distance (FID)
-    Measures how similar two sets of images LOOK.
-    Lower = more similar looking images.
 
-    BUT — it doesn't care if a dangerous condition
-    is missed! That's the problem CUS solves!
+    Measures distributional similarity between two sets
+    of images. Lower = more similar looking images.
+
+    ⚠️ LIMITATION: Gives ONE global score for entire dataset.
+    Cannot identify which individual images are dangerous.
+    Not designed for medical image evaluation.
     """
     mu1, sigma1 = calculate_stats(real_features)
     mu2, sigma2 = calculate_stats(synthetic_features)
 
-    # Difference between means
     diff = mu1 - mu2
 
-    # Square root of product of covariances
-    covmean, _ = linalg.sqrtm(sigma1.dot(sigma2), disp=False)
+    covmean = linalg.sqrtm(sigma1.dot(sigma2))
 
-    # Handle numerical errors
     if np.iscomplexobj(covmean):
         covmean = covmean.real
 
@@ -46,14 +54,17 @@ def compute_fid(real_features, synthetic_features):
 
 
 # ── KID Score ─────────────────────────────────────────────────────
-def compute_kid(real_features, synthetic_features, num_subsets=10):
+def compute_kid(real_features, synthetic_features,
+                num_subsets=10):
     """
     Kernel Inception Distance (KID)
-    Similar to FID but more reliable with small datasets.
+
+    More reliable than FID with small datasets.
     Lower = more similar looking images.
 
-    Still doesn't catch clinical danger though!
-    That's why CUS is needed!
+    ⚠️ LIMITATION: Also gives ONE global score.
+    Cannot identify which individual images are dangerous.
+    Not designed for medical image evaluation.
     """
     subset_size = min(
         len(real_features),
@@ -62,9 +73,7 @@ def compute_kid(real_features, synthetic_features, num_subsets=10):
     )
 
     kid_scores = []
-
     for _ in range(num_subsets):
-        # Random subsets
         real_idx = np.random.choice(
             len(real_features), subset_size, replace=False
         )
@@ -75,7 +84,6 @@ def compute_kid(real_features, synthetic_features, num_subsets=10):
         real_sub = real_features[real_idx]
         syn_sub = synthetic_features[syn_idx]
 
-        # Polynomial kernel
         def kernel(x, y):
             return (x.dot(y.T) / x.shape[1] + 1) ** 3
 
@@ -89,22 +97,22 @@ def compute_kid(real_features, synthetic_features, num_subsets=10):
     return round(float(np.mean(kid_scores)), 4)
 
 
-# ── Simulate Image Features ───────────────────────────────────────
+# ── Feature Extraction ────────────────────────────────────────────
 def extract_features(images, feature_dim=64):
     """
-    Simulate feature extraction from images.
-    In Week 4 we'll replace this with a real
-    AI model (DenseNet121)!
+    Extract simple features from images for FID/KID.
+    In production this would use InceptionV3 features.
+    For this study we use flattened pixel features as proxy.
     """
     features = []
     for _, img in images:
-        # Resize and flatten image as simple features
         import cv2
         resized = cv2.resize(img, (8, 8))
         flat = resized.flatten().astype(np.float32)
-        # Pad or trim to feature_dim
         if len(flat) < feature_dim:
-            flat = np.pad(flat, (0, feature_dim - len(flat)))
+            flat = np.pad(
+                flat, (0, feature_dim - len(flat))
+            )
         else:
             flat = flat[:feature_dim]
         features.append(flat)
@@ -113,8 +121,10 @@ def extract_features(images, feature_dim=64):
 
 # ── Quick Test ────────────────────────────────────────────────────
 if __name__ == "__main__":
-    print("Testing FID and KID with random features...")
-    # Simulate real vs synthetic features
+    print("=" * 55)
+    print("CUS-Synth: FID and KID Test")
+    print("=" * 55)
+
     np.random.seed(42)
     real_feats = np.random.randn(100, 64)
     syn_feats = np.random.randn(100, 64) + 0.5
@@ -122,6 +132,9 @@ if __name__ == "__main__":
     fid = compute_fid(real_feats, syn_feats)
     kid = compute_kid(real_feats, syn_feats)
 
-    print(f"FID Score: {fid}")
+    print(f"\nFID Score: {fid}")
     print(f"KID Score: {kid}")
-    print("(Lower = more similar images)")
+    print(f"\n⚠️  These are GLOBAL scores — no per-image signal!")
+    print(f"⚠️  Cannot identify clinically dangerous images!")
+    print(f"✅ CUS solves this with per-image clinical scores!")
+    print("=" * 55)
