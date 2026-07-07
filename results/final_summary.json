@@ -1,0 +1,23 @@
+{
+  "total_synthetic_images": 100,
+  "images_with_omission": 19,
+  "images_with_reliable_hallucination": 3,
+  "pneumothorax_missed": 8,
+  "effusion_missed": 8,
+  "consolidation_missed": 3,
+  "avg_cus_score": 0.2205,
+  "avg_cus_omission": 0.0406,
+  "avg_cus_hallucination": 0.1799,
+  "classifier_avg_sensitivity": 0.78,
+  "classifier_avg_specificity": 0.916,
+  "pneumothorax_sensitivity": 1.0,
+  "pneumothorax_specificity": 1.0,
+  "conditions_evaluated": [
+    "Pneumothorax",
+    "Effusion",
+    "Consolidation",
+    "Nodule",
+    "Cardiomegaly"
+  ],
+  "note": "Restricted to conditions with threshold >= 0.20 to avoid multiple comparisons artifact"
+}
